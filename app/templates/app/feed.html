@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Our CSS -->
+    <link rel="stylesheet" type="text/css" href="../../static/app/style.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!-- font awesome icon -->
+      <script src="https://kit.fontawesome.com/346d3afbe8.js" crossorigin="anonymous"></script>
+
+  {% load app_extras %}
+
+    <title>Feed</title>
+  <!--
+    REFERENCES
+    Title: Custom Template Tags and Filters (Django Documentation)
+    URL: https://docs.djangoproject.com/en/dev/howto/custom-template-tags/
+
+    Title: Font Awesome
+    Code version: 5.0.0
+    URL: https://fontawesome.com/icons/map-marker-alt
+    Software License: CC BY 4.0
+    -->
+</head>
+<style>
+  body {
+    background-image: url("../../media/background.jpg");
+    background-size: cover;
+  }
+</style>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6cbcaf;">
+    <a class="navbar-brand" href='/'>QuickTutor</a>
+    <div id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href = '/feed/' >Feed</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href = '/myRequest/' >Request</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href = '/contacts/' >Messages</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{user.email}}
+          </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href='/profile/' >My Profile</a>
+            <form action="/myRequest/" method="post" class="inline">
+                {% csrf_token %}
+                <input type=submit name='action' value='Logout' class="dropdown-item">
+            </form>
+        </div>
+      </ul>
+      </div>
+
+  </nav>
+  <!-- End Navbar -->
+
+  <!-- Jumbotron -->
+  <div class="jumbotron jumbotron-fluid" style="padding: 10px;">
+    <div class="container">
+      <h1 id="h1" class="display-4">Request Feed</h1>
+      <p class="lead"> Browse current requests, and offer help to students in need!</p>
+
+      <!-- Begin Search Bar -->
+      <div>
+        <form method="GET" action="">
+          <div class="row">
+            <input class="form-control inline col-3" name="filter" value="{{request.GET.q}}" placeholder="Search by Keyword..." style="margin-left: 15px;">
+            <button class="btn" style="background-color: #6cbcaf; border-color: #6cbcaf; color: white; margin-left: 10px;" type="submit"> Search </button>
+          </div>
+        </form>
+      </div><br>
+      <!-- End  Search Bar -->
+
+    </div>
+  </div>
+  <!-- End jumbotron -->
+
+  <!-- Begin feed -->
+  {% if requests_list %}
+    <div class="container">
+      <!-- This uses a custom template filter to iterate through both lists simultaneously -->
+      {% for request, time in requests_list|zip:times %}
+        <div class="row" style="padding-bottom: 30px;">
+          <div class="col-sm-6">
+            <div class="card" style="width: 130%;">
+              <div class="card-header">
+                <h5 class="card-title inline">{{ request.title }}</h5>
+                <i class="fas fa-map-marker-alt inline icon"></i>
+                <p class="inline location">{{ request.location }}</p>
+                <!-- If the user's own request is found, add '(your request)' to the header -->
+                {% if request.user == user.email %}
+                  <em class="request-btn">(your request)</em>
+                <!-- Otherwise, display name and email of tutee -->
+                {% else %}
+                  <em class="request-btn">{{request.user}}</em>
+                {% endif %}
+                <p class="time" style="margin-bottom: 0px; padding-bottom: 0px;" id="timestamp">{{ time }}</p>
+              </div>
+              <div class="card-body">
+                <p class="card-text mode-description">{{ request.description }}</p>
+                <!-- If it's not the user's own request, display the form to offer help, etc. -->
+                {% if request.user != user.email %}
+                  <form action="/feed/" method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="tutee" id="tutee" value="{{ request.user }}">
+                    <!-- If you haven't offered help, display 'offer help' button -->
+                    {% if user not in request.tutors.all %}
+                      <input onclick="window.alert('Offer sent.')" type="submit" name="action" value="Offer Help" class="btn btn-success request-btn inline">
+                    <!-- If you've already offered your help, this button should be a revoke offer button -->
+                    {% else %}
+                      <input onclick="window.alert('Offer revoked.')" type="submit" name="action" value="Revoke Offer" class="btn btn-danger request-btn inline">
+                    {% endif %}
+                    <input id="viewProfile" type="submit" name="action" value="View Profile" class="btn request-btn inline">
+                  </form>
+                <!-- If it's the user's own request, provide link to their request page -->
+                {% else %}
+                <a href="/myRequest/">View my request</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="container">
+      <div class="row">
+        <p class="lead">No requests found.</p>
+      </div>
+    </div>
+  {% endif %}
+  <!-- End feed -->
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+</body>
+</html>

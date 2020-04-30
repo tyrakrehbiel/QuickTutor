@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!-- Our CSS -->
+    <link rel="stylesheet" type="text/css" href="../../static/app/style.css">
+
+    <title>Messages</title>
+  </head>
+  <style>
+    body {
+      background-image: url("../../media/background.jpg");
+      background-size: cover;
+    }
+  </style>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6cbcaf;">
+      <a class="navbar-brand" href='/'>QuickTutor</a>
+      <div id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href = '/feed/' >Feed</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href = '/myRequest/' >Request</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href = '/contacts/' >Messages</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{user.email}}
+            </a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href='/profile/' >My Profile</a>
+              <form action="/myRequest/" method="post" class="inline">
+                  {% csrf_token %}
+                  <input type=submit name='action' value='Logout' class="dropdown-item">
+              </form>
+          </div>
+        </ul>
+      </div>
+
+    </nav><br>
+
+    <div class="container">
+      <div class="row"><a href="/contacts/">< Return to My Contacts</a></div>
+      <div class="row">
+        <div class="card w-75" style="margin: 10px auto; padding-bottom: 10px;">
+          <div class="card-header" style="margin-bottom: 10px; ">
+            <div class="card-title" style="margin: 0px;"><h5>Messages with {{ other_user.get_full_name }}</h5></div>
+          </div>
+          <div id="message-body" class="message-body">
+            <!-- If the user has messages with this person, display them -->
+            {% if messages %}
+              <!-- Iterate through messages -->
+              {% for message in messages %}
+                <!-- See if it is the user's message or the other user's to determine which side to display it on -->
+                {% if message.sender.email == user.email %}
+                  <!-- Display on right side -->
+                  <div class="d-md-flex justify-content-end message-div">
+                    <div class="message sent"> {{ message.content }} </div>
+                  </div>
+                <!-- Else, display on left side -->
+                {% else %}
+                  <div class="d-md-flex justify-content-start message-div">
+                    <div class="message received"> {{ message.content }} </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+            <div class="container">
+              <p class="lead">No messages to display. Type a new message below.</p>
+            </div>
+            {% endif %}
+
+            <!-- Display form to type a new message below -->
+            <br/>
+            <form action="/messages/" method="post">
+              {% csrf_token %}
+              <div class="form-row justify-content-center">
+                <div class="col-auto" style="margin-right: 5px;">
+                  <textarea name='message' class="form-control" rows="3" cols="80" placeholder="Type a new message here..."></textarea>
+                </div>
+                <div class="col-auto">
+                  <input type="hidden" name="receiver" value="{{ other_user.email }}">
+                  <input name="action" type="submit" value="Send" class="inline btn btn-primary">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Need a refresh button so that they don't use the browser refresh (will resend messages) -->
+      <div class="row">
+        <form id="bottom" action="/contacts/" method="post" style="margin: 0px auto;">
+          {% csrf_token %}
+          <input type="hidden" name="contact" value="{{ other_user.email }}">
+          <input name="action" type="submit" value="Check for new messages" class="btn btn-link">
+        </form>
+      </div> <br>
+    </div>
+
+    <script>
+    var bottom = document.getElementById('bottom').offsetTop;
+    window.scrollTo(0, bottom);
+
+    var body = document.getElementById('message-body');
+    body.scrollTop = body.scrollHeight;
+    </script>
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>

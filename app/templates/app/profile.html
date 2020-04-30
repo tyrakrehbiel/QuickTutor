@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!-- Our CSS -->
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'app/style.css' %}">
+
+    <title>Profile</title>
+  </head>
+  <style>
+    body {
+      background-image: url("../../media/background.jpg");
+      background-size: cover;
+    }
+  </style>
+  <body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6cbcaf;">
+    <a class="navbar-brand" href='/'>QuickTutor</a>
+    <div id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href = '/feed/' >Feed</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href = '/myRequest/' >Request</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href = '/contacts/' >Messages</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{user.email}}
+          </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href='/profile/' >My Profile</a>
+            <form action="/myRequest/" method="post" class="inline">
+                {% csrf_token %}
+                <input type=submit name='action' value='Logout' class="dropdown-item">
+            </form>
+        </div>
+      </ul>
+      </div>
+
+  </nav><br>
+
+  <!-- The tutor and tutee profile pages when a user clicks on 'View Profile' (from the Feed or
+    Request pages) will most likely look different from the 'My Profile' view, hence the separation
+    and current repetition of code -->
+
+  {% if tutorORtutee %} <!-- if it's another user viewing the profile...
+  tutorORtutee represents the user whose profile is to be viewed -->
+    <div class="tutorORtuteeProfile" style="text-align: center;">
+      <h2>{{ tutorORtutee.get_full_name }}'s Profile </h2><br>
+      <img alt="{{ tutorORtutee.image.url }}" onerror="this.onerror=null; this.src='/media/default.jpg'" style="border-radius: 50%; height: 10%; width: 10%;" src="{{ tutorORtutee.image.url }}">
+      <p class="lead"><br>{{ tutorORtutee.email }} <br/>
+        {{tutorORtutee.description}} <br/>
+      {% if tutorORtutee.avg_rating == 0.0 %}
+        No ratings</p>
+      {% else %}
+        Rating: {{ tutorORtutee.avg_rating }} Stars</p>
+      {% endif %}
+    </div>
+
+  {% else %} <!--You are this user - display edit profile form-->
+    <div class="profile-pic" style="text-align: center;">
+      <img alt="{{ user.image.url }}" onerror="this.onerror=null; this.src='/media/default.jpg'" style="border-radius: 50%; height: 10%; width: 10%;" src="{{ user.image.url }}">
+    </div>
+    
+    <div class="container">
+        <div style="text-align:center;">
+          <h2>{{ user.get_full_name }}</h2>
+          <p class="lead">{{ user.email }} <br/>
+          {{ user.description }} <br/>
+          {% if user.avg_rating == 0.0 %} <!-- if no ratings yet, display no ratings -->
+            No ratings</p>
+          {% else %} <!-- otherwise display average rating -->
+            Rating: {{ user.avg_rating }} Stars</p>
+          {% endif %}
+        </div>
+
+      <!-- Update profile form -->
+      <form action="/profile/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <legend class="border-bottom mb-4" style="padding-left: 1%;">Update Profile</legend>
+        <div class="form-row">
+          <p class="lead inline" style="padding-left: 16px;">Description</p>
+          <div>
+            <input type="text" size="100" value="{{ user.description }}" name="description" class="form-control inline" style="margin-left: 5px;">
+          </div>
+        </div>
+        <div class="form-row">
+          <p class="lead inline" style="padding-left: 16px; padding-right: 10px;">Upload profile picture (.png .jpg .jpeg .gif)</p>
+          <input type="file" id="img" name="img" accept="image/*">
+        </div>
+        <input name="action" type="submit" value="Update Profile" class="inline btn" style="background-color: #6cbcaf; border-color: #6cbcaf; color: white; margin-left: 10px;">
+      </form>
+    </div>
+  {% endif %}
+  <br>
+
+  <!-- DISPLAY REVIEWS   -->
+  {% if reviews %}
+  <div class="container">
+    <legend class="border-bottom mb-4" style="padding-left: 1%;">Reviews</legend>
+    {% for review in reviews %}
+      <div class="col-sm-5">
+        <div class="card" style="width: 130%; margin: 15px 0px;">
+          <div class="card-header">
+            <i class="card-title inline">{{ review.reviewer }} | {{ review.rating }}
+              {% if review.rating == 1 %} Star
+              {% else %} Stars
+              {% endif %} </i>
+          </div>
+          <div class="card-body">
+            {% if review.description|length > 1 %}
+              <p class="lead">{{ review.description }}</p>
+            {% else %}
+              <em>No description.</em>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+    
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>
